@@ -115,11 +115,128 @@ const deleteEvent = async (req, res) => {
     }
 };
 
+// expensive of event
+const getExpensiveEvents = async(req,res) =>{
+  try{
+    const price = Number(req.query.price);
+    const events = await Event.find({
+      price :{
+        $gt : price
+      }
+    }).populate("category");
+   res.status(200).json(events);
+  }catch(error){
+    res.status(500).json({
+      message : error.message
+    });
+  }
+}
+
+// search events
+const searchEvents = async (req, res) => {
+    try {
+        const title = req.query.title;
+        const events = await Event.find({
+            title: {
+                $regex: title,
+                $options: "i"
+            }
+        }).populate("category");
+        res.status(200).json(events);
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        });
+    }
+};
+
+// sort events by price
+const sortEvents = async(req,res)=>{
+  try{
+    const order = req.query.order;
+    let sortOrder = 1;
+    if(order === "desc"){
+      sortOrder = -1;
+    }
+    const events = await Event.find().sort({price : sortOrder}).populate("category");
+    res.status(200).json(events);
+  }catch(error){
+    res.status(500).json({
+      message : error.message
+    });
+  }
+}
+
+// Count events by category
+const countEventsByCategory = async (req, res) => {
+    try {
+        const events = await Event.aggregate([
+            {
+                $group: {
+                    _id: "$category",
+                    count: { $sum: 1 }
+                }
+            },
+            {
+                $lookup: {
+                    from: "categories",
+                    localField: "_id",
+                    foreignField: "_id",
+                    as: "category"
+                }
+            },
+            {
+                $unwind: "$category"
+            }
+        ]);
+        res.status(200).json(events);
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        });
+    }
+};
+
+// Average price by category
+const averagePriceByCategory = async (req, res) => {
+    try {
+        const events = await Event.aggregate([
+            {
+                $group: {
+                    _id: "$category",
+                    averagePrice: { $avg: "$price" }
+                }
+            },
+            {
+                $lookup: {
+                    from: "categories",
+                    localField: "_id",
+                    foreignField: "_id",
+                    as: "category"
+                }
+            },
+            {
+                $unwind: "$category"
+            }
+        ]);
+        res.status(200).json(events);
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        });
+    }
+};
+
 
 module.exports = {
     createEvent,
     getEvents,
     getEventById,
     updateEvent,
-    deleteEvent
+    deleteEvent,
+    getExpensiveEvents,
+    searchEvents,
+    sortEvents,
+    countEventsByCategory,
+    averagePriceByCategory
 };

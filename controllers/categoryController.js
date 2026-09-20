@@ -7,13 +7,11 @@ const createCategory = async (req, res) => {
         res.status(201).json(category);
 
     } catch (error) {
-
         if (error.code === 11000) {
             return res.status(409).json({
                 message: "Category already Exists"
             });
         }
-
         res.status(500).json({
             message: error.message
         });
