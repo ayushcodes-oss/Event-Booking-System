@@ -11,7 +11,7 @@ const bookingSchema = new mongoose.Schema({
     ref :"Event",
     required : true
   },
-  numberofSeats :{
+  numberOfSeats :{
     type : Number,
     required : true,
     min :1
