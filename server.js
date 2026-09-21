@@ -11,12 +11,14 @@ connectDB();
 const categoryRoutes = require("./routes/categoryRoutes")
 const testRoutes = require("./routes/testRoutes");
 const eventRoutes = require("./routes/eventRoutes");
+const authRoutes = require("./routes/authRoutes");
 
 
 app.use(express.json());
 app.use("/api/categories",categoryRoutes);
 app.use("/api/test", testRoutes);
 app.use("/api/events", eventRoutes);
+app.use("/api/auth",authRoutes)
 app.get("/",(req,res) =>{
   res.json({
     message : "api is running"

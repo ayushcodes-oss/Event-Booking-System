@@ -227,6 +227,24 @@ const averagePriceByCategory = async (req, res) => {
     }
 };
 
+// Search performance
+const searchPerformance = async (req, res) => {
+    try {
+        const title = req.query.title;
+        const result = await Event.find({
+            title: {
+                $regex: title,
+                $options: "i"
+            }
+        }).explain("executionStats");
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        });
+    }
+};
+
 
 module.exports = {
     createEvent,
@@ -238,5 +256,6 @@ module.exports = {
     searchEvents,
     sortEvents,
     countEventsByCategory,
-    averagePriceByCategory
+    averagePriceByCategory,
+    searchPerformance,
 };
