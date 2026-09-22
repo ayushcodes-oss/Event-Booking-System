@@ -1,6 +1,7 @@
 const User = require("../models/userModel");
 const bcrypt = require("bcrypt");
-const { generateAccessToken } = require("../utils/tokenUtils");
+const {generateAccessToken,generateRefreshToken} = require("../utils/tokenUtils");;
+const RefreshToken = require("../models/refreshTokenModel");
 
 // Register User
 const registerUser = async (req, res) => {
@@ -54,16 +55,23 @@ const loginUser = async (req, res) => {
             });
         }
         const accessToken = generateAccessToken(user);
+        const refreshToken = generateRefreshToken(user);
+        const refreshTokenData = await RefreshToken.create({
+            token: refreshToken,
+            user: user._id,
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+        });
         res.status(200).json({
             message: "Login successful",
-            accessToken
+            accessToken,
+            refreshToken
         });
     } catch (error) {
         res.status(500).json({
             message: error.message
         });
     }
-};
+};;
 
 module.exports = {
     registerUser,
