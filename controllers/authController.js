@@ -130,8 +130,39 @@ const refreshAccessToken = async (req, res) => {
     }
 };
 
+// logout
+const logoutUser = async (req, res) => {
+    try {
+        const { refreshToken } = req.body;
+
+        const tokenData = await RefreshToken.findOne({
+            token: refreshToken
+        });
+
+        if (!tokenData) {
+            return res.status(404).json({
+                message: "Refresh token not found"
+            });
+        }
+
+        tokenData.revokedAt = new Date();
+
+        await tokenData.save();
+
+        res.status(200).json({
+            message: "Logout successful"
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        });
+    }
+};
+
 module.exports = {
     registerUser,
     loginUser,
-    refreshAccessToken
+    refreshAccessToken,
+    logoutUser
 };
