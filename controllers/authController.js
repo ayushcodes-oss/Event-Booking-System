@@ -1,5 +1,6 @@
 const User = require("../models/userModel");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const {generateAccessToken,generateRefreshToken} = require("../utils/tokenUtils");;
 const RefreshToken = require("../models/refreshTokenModel");
 
@@ -71,9 +72,66 @@ const loginUser = async (req, res) => {
             message: error.message
         });
     }
-};;
+};
+
+const refreshAccessToken = async (req, res) => {
+    try {
+        const { refreshToken } = req.body;
+
+        console.log("Refresh token received");
+
+        const tokenData = await RefreshToken.findOne({
+            token: refreshToken
+        });
+
+        console.log("Token found in DB:", !!tokenData);
+
+        if (!tokenData) {
+            return res.status(401).json({
+                message: "Invalid refresh token"
+            });
+        }
+
+        if (tokenData.revokedAt) {
+            return res.status(401).json({
+                message: "Refresh token has been revoked"
+            });
+        }
+
+        console.log("Checking JWT...");
+
+        const decoded = jwt.verify(
+            refreshToken,
+            process.env.JWT_REFRESH_SECRET
+        );
+
+        console.log("JWT verified:", decoded);
+
+        const user = await User.findById(decoded.userId);
+
+        if (!user) {
+            return res.status(401).json({
+                message: "User not found"
+            });
+        }
+
+        const accessToken = generateAccessToken(user);
+
+        res.status(200).json({
+            accessToken
+        });
+
+    } catch (error) {
+        console.log("REFRESH ERROR:", error.message);
+
+        return res.status(401).json({
+            message: error.message
+        });
+    }
+};
 
 module.exports = {
     registerUser,
-    loginUser
+    loginUser,
+    refreshAccessToken
 };
